@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaflet Map with Geofencing</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+    <!-- Leaflet Control Geocoder CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
+
+    <style>
+        #map {
+            height: 500px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- <h2 style="text-align: center;">Geofencing with Leaflet.js</h2>
+    <div id="status">Checking your location...</div> -->
+    <div id="map"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <!-- Leaflet Control Geocoder JS -->
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.js" charset="utf-8"></script>
+
+    <script>
+        // Koordinat Tomohon dan radius geofence (dalam meter)
+        const tomohonCoordinates = [1.3278, 124.8398];
+        const geofenceRadius = 30; // 30 meter
+
+        // Inisialisasi peta dan set view ke Tomohon
+        const map = L.map('map').setView(tomohonCoordinates, 12);
+
+        // Tile layer dari OpenStreetMap
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        L.Control.geocoder().addTo(map);
+
+        var lc = L.control.locate({
+            position: 'topright', // posisi kontrol
+            trackUserLocation: true, // melacak lokasi pengguna
+            onLocationError: function(e) {
+                alert(e.message);
+            },
+            setView: 'untilPan', // mengatur peta untuk panning ke lokasi pengguna
+            keepCurrentZoomLevel: false, // mengubah zoom ke level baru saat lokasi ditemukan
+            maximumZoom: 16, // zoom maksimum saat menampilkan lokasi
+            locateOptions: {
+                enableHighAccuracy: true, // gunakan akurasi tinggi
+                timeout: 10000, // waktu tunggu maksimum dalam milidetik
+                maximumAge: 0 // tidak menggunakan lokasi lama
+            }
+          })
+          .addTo(map);
+
+          lc.start();
+    
+    </script>
+
+</body>
+</html>
