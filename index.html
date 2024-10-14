@@ -3,85 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leaflet Map with Geofencing</title>
-
-    <!-- Leaflet CSS -->
+    <title>Live User Location with Leaflet</title>
+   <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
-
-    <style>
+     <style>
         #map {
-            height: 500px;
-            width: 100%;
+            height: 90vh; /* Peta memenuhi 90% layar */
         }
-        #coordinates {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            background-color: white;
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        #coords {
+            height: 10vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f4f4f4;
+            font-size: 18px;
             font-family: Arial, sans-serif;
         }
     </style>
 </head>
 <body>
-
     <div id="map"></div>
-    <div id="coordinates">Latitude: - <br>Longitude: -</div>
 
-    <!-- Leaflet JS -->
+    <!-- Div untuk menampilkan Latitude dan Longitude -->
+    <div id="coords">Latitude: - | Longitude: -</div>
+
+     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.js" charset="utf-8"></script>
-
     <script>
-        // Koordinat Tomohon dan radius geofence (30 meter)
-        const tomohonCoordinates = [1.3278, 124.8398];
-        const geofenceRadius = 30;
+        // Inisialisasi peta
+        const map = L.map('map').setView([0, 0], 13);  // Default sebelum lokasi ditemukan
 
-        // Inisialisasi peta dengan view Tomohon
-        const map = L.map('map').setView(tomohonCoordinates, 12);
-
-        // Tambahkan tile layer
+        // Tambahkan tile OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-        // Tambahkan kontrol locate
-        var lc = L.control.locate({
-            position: 'topright',
-            trackUserLocation: true,
-            onLocationError: function(e) {
-                alert(e.message);
-            },
-            setView: 'untilPan',
-            locateOptions: {
+        // Inisialisasi marker untuk lokasi user
+        let marker = L.marker([0, 0]).addTo(map).bindPopup("Lokasi Anda");
+
+        // Referensi ke elemen koordinat
+        const coordsDisplay = document.getElementById('coords');
+
+        // Fungsi untuk memperbarui lokasi dan koordinat
+        function updateLocation(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+
+            // Update posisi marker dan view peta
+            marker.setLatLng([lat, lng]);
+            map.setView([lat, lng], 13);
+
+            // Tampilkan latitude dan longitude
+            coordsDisplay.textContent = `Latitude: ${lat.toFixed(5)} | Longitude: ${lng.toFixed(5)}`;
+        }
+
+        // Fungsi jika terjadi error
+        function handleError(error) {
+            console.error("Error mendapatkan lokasi:", error.message);
+            alert("Gagal mendapatkan lokasi. Pastikan GPS aktif.");
+        }
+
+        // Pantau lokasi pengguna secara real-time
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition(updateLocation, handleError, {
                 enableHighAccuracy: true,
-                timeout: 500,
-                maximumAge: 0
-            }
-        }).addTo(map);
-
-        // Mulai melacak lokasi pengguna secara otomatis
-        lc.start();
-
-        // Fungsi untuk memperbarui latitude dan longitude secara realtime
-        map.on('locationfound', function(e) {
-            const lat = e.latitude.toFixed(6);
-            const lng = e.longitude.toFixed(6);
-            document.getElementById('coordinates').innerHTML = 
-                `Latitude: ${lat} <br>Longitude: ${lng}`;
-        });
-
-        map.on('locationerror', function(e) {
-            alert('Unable to retrieve your location: ' + e.message);
-        });
+                maximumAge: 10000,
+                timeout: 10000
+            });
+        } else {
+            alert("Geolocation tidak didukung di browser ini.");
+        }
     </script>
-
 </body>
 </html>
