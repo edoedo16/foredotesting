@@ -9,9 +9,6 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 
-    <!-- Leaflet Control Geocoder CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
-
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
 
     <style>
@@ -19,58 +16,71 @@
             height: 500px;
             width: 100%;
         }
+        #coordinates {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background-color: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            font-family: Arial, sans-serif;
+        }
     </style>
 </head>
 <body>
 
-    <!-- <h2 style="text-align: center;">Geofencing with Leaflet.js</h2>
-    <div id="status">Checking your location...</div> -->
     <div id="map"></div>
+    <div id="coordinates">Latitude: - <br>Longitude: -</div>
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
-    <!-- Leaflet Control Geocoder JS -->
-    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
-
-    
     <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.js" charset="utf-8"></script>
 
     <script>
-        // Koordinat Tomohon dan radius geofence (dalam meter)
+        // Koordinat Tomohon dan radius geofence (30 meter)
         const tomohonCoordinates = [1.3278, 124.8398];
-        const geofenceRadius = 30; // 30 meter
+        const geofenceRadius = 30;
 
-        // Inisialisasi peta dan set view ke Tomohon
+        // Inisialisasi peta dengan view Tomohon
         const map = L.map('map').setView(tomohonCoordinates, 12);
 
-        // Tile layer dari OpenStreetMap
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        // Tambahkan tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-        L.Control.geocoder().addTo(map);
-
+        // Tambahkan kontrol locate
         var lc = L.control.locate({
-            position: 'topright', // posisi kontrol
-            trackUserLocation: true, // melacak lokasi pengguna
+            position: 'topright',
+            trackUserLocation: true,
             onLocationError: function(e) {
                 alert(e.message);
             },
-            setView: 'untilPan', // mengatur peta untuk panning ke lokasi pengguna
-            keepCurrentZoomLevel: false, // mengubah zoom ke level baru saat lokasi ditemukan
-            maximumZoom: 16, // zoom maksimum saat menampilkan lokasi
+            setView: 'untilPan',
             locateOptions: {
-                enableHighAccuracy: true, // gunakan akurasi tinggi
-                timeout: 10000, // waktu tunggu maksimum dalam milidetik
-                maximumAge: 0 // tidak menggunakan lokasi lama
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
             }
-          })
-          .addTo(map);
+        }).addTo(map);
 
-          lc.start();
-    
+        // Mulai melacak lokasi pengguna secara otomatis
+        lc.start();
+
+        // Fungsi untuk memperbarui latitude dan longitude secara realtime
+        map.on('locationfound', function(e) {
+            const lat = e.latitude.toFixed(6);
+            const lng = e.longitude.toFixed(6);
+            document.getElementById('coordinates').innerHTML = 
+                `Latitude: ${lat} <br>Longitude: ${lng}`;
+        });
+
+        map.on('locationerror', function(e) {
+            alert('Unable to retrieve your location: ' + e.message);
+        });
     </script>
 
 </body>
