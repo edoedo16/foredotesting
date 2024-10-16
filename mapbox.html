@@ -1,92 +1,87 @@
 <!DOCTYPE html>
 <html>
-<head>
-<meta charset="utf-8">
-<title>Locate the user</title>
-<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
-<link href="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css" rel="stylesheet">
-<script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
-<style>
-body { margin: 0; padding: 0; }
-#map { height: 400px; width: 100%; }
-</style>
-</head>
-<body>
-    
+  <head>
+    <meta charset="utf-8" />
+    <title>Locate the User in Real-time</title>
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <link
+      href="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css"
+      rel="stylesheet" />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        height: 400px;
+        width: 100%;
+      }
+      #user-location {
+        padding: 10px;
+        background-color: #f0f0f0;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <div id="user-location">Menunggu lokasi pengguna...</div>
 
-<div id="map"></div>
-<div id="user-location"></div>
-<script>
-	mapboxgl.accessToken = 'pk.eyJ1IjoiZWRvZWRvMTYiLCJhIjoiY2xpdHZleHQ2MHNqMjN0bzc2bHZyNjBneSJ9.ztjSNfmimSLNi84XsUHKOw';
-    const map = new mapboxgl.Map({
-        container: 'map', // container ID
-        // Choose from Mapbox's core styles, or make your own style with Mapbox Studio
-        style: 'mapbox://styles/mapbox/streets-v12', // style URL
-        center: [-24, 42], // starting center in [lng, lat]
-        zoom: 1 // starting zoom
-    });
+    <script>
+      mapboxgl.accessToken =
+        "pk.eyJ1IjoiZWRvZWRvMTYiLCJhIjoiY2xpdHZleHQ2MHNqMjN0bzc2bHZyNjBneSJ9.ztjSNfmimSLNi84XsUHKOw";
 
-    
-    // Mendapatkan referensi ke elemen HTML tempat Anda ingin menampilkan koordinat
-const userLocationElement = document.getElementById('user-location');
+      const map = new mapboxgl.Map({
+        container: "map", // container ID
+        style: "mapbox://styles/mapbox/streets-v12", // style URL
+        center: [124.8398, 1.3278], // starting center (Tomohon)
+        zoom: 13, // starting zoom
+      });
 
-// Membuat marker kosong yang akan digunakan untuk menampilkan lokasi pengguna
-const marker = new mapboxgl.Marker({
-  color: 'blue' // Warna marker
-});
+      const userLocationElement = document.getElementById("user-location");
+      const marker = new mapboxgl.Marker({ color: "blue" });
 
-// Callback yang akan dijalankan ketika lokasi pengguna berubah
-function updateUserLocation(position) {
-  const { latitude, longitude } = position.coords;
-  userLocationElement.innerHTML = `Latitude: ${latitude}, Longitude: ${longitude}`;
-  
-  // Mengatur koordinat marker ke lokasi pengguna yang baru
-  marker.setLngLat([longitude, latitude]).addTo(map);
-}
+      // Fungsi untuk memperbarui lokasi secara real-time
+      function updateUserLocation(position) {
+        const { latitude, longitude } = position.coords;
+        userLocationElement.innerHTML = `
+          Latitude: ${latitude.toFixed(5)}, Longitude: ${longitude.toFixed(5)}
+        `;
 
-// Menambahkan event listener untuk mendengarkan perubahan lokasi pengguna
-map.on('load', () => {
-  map.addControl(
-    new mapboxgl.GeolocateControl({
-      positionOptions: {
-        enableHighAccuracy: true
-      },
-      trackUserLocation: true,
-      showUserHeading: true
-    })
-  );
+        // Set posisi marker ke lokasi pengguna
+        marker.setLngLat([longitude, latitude]).addTo(map);
 
-  // Event listener untuk mendengarkan perubahan lokasi pengguna
-  map.on('geolocate', (event) => {
-    updateUserLocation(event);
-  });
-});
+        // Center peta ke lokasi terbaru
+        map.flyTo({ center: [longitude, latitude], zoom: 15 });
+      }
 
+      // Kontrol Geolokasi Mapbox
+      const geolocateControl = new mapboxgl.GeolocateControl({
+        positionOptions: { enableHighAccuracy: true },
+        trackUserLocation: true,
+        showUserHeading: true,
+      });
 
+      map.addControl(geolocateControl);
 
-</script>
+      // Event listener saat posisi diperbarui
+      geolocateControl.on("geolocate", (e) => {
+        updateUserLocation(e);
+      });
 
-</body>
+      // Mulai geolokasi otomatis setelah peta siap
+      map.on("load", () => {
+        geolocateControl.trigger();
+      });
+    </script>
+  </body>
 </html>
-
-
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  
-    <div class="container">
-        <div class="card">
-            <div id="map" class="gmaps"></div>
-        </div>
-    </div>
-
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDKXKdHQdtqgPVl2HI2RnUa_1bjCxRCQo4&callback=initMap" async defer></script>
-    <script src="map.js"></script>
-</body>
-</html> -->
